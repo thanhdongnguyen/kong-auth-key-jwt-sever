@@ -37,7 +37,7 @@ return {
                     response_status = {
                         type = "string"
                     }
-                }
+                },
                 {
                     key_secret_signature = {
                         type = "string"

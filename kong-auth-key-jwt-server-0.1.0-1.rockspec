@@ -9,7 +9,7 @@ description = {
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git://github.com/thanhdongnguyen/kong-auth-key-jwt-sever",
-  tag = "0.1.0"
+  tag = "0.1.0-1"
 }
 
 dependencies = {
@@ -17,7 +17,7 @@ dependencies = {
 build = {
     type = "builtin",
     modules = {
-        ["kong.plugins.auth-key-jwt.handler"] = "kong/plugins/kong-auth-key-jwt-server/handler.lua",
-        ["kong.plugins.auth-key-jwt.schema"] = "kong/plugins/kong-auth-key-jwt-server/schema.lua"
+        ["kong.plugins.auth-key-jwt-server.handler"] = "kong/plugins/kong-auth-key-jwt-server/handler.lua",
+        ["kong.plugins.auth-key-jwt-server.schema"] = "kong/plugins/kong-auth-key-jwt-server/schema.lua"
     }
 }

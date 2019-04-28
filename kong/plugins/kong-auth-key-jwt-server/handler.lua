@@ -13,32 +13,31 @@ local string = string
 JWT.VERSION = "0.1.0-1"
 JWT.PRIORITY = 1005
 
-function JWT:new(  )
-    JWT.super.new(self, "kong-auth-jwt")
+function JWT:new()
+    JWT.super.new(self, "kong-auth-key-jwt-server")
 end
 
 function JWT:access(conf)
 
     JWT.super.access(self)
 
-    if not conf.header_select_token or not conf.url_authentication or not conf.body or not conf.response_token or not conf.response_status or not conf.key_secret_signature or not conf.method_authentication then
-        return kong.response.exit(403, {
-            message = "Access Denied"
-        })
-    end
+    -- if not conf.header_select_token or not conf.url_authentication or not conf.body or not conf.response_token or not conf.response_status or not conf.key_secret_signature or not conf.method_authentication then
+    --     return kong.response.exit(403, {
+    --         message = "Access Denied"
+    --     })
+    -- end
 
+    -- local ok, err = doAuthentication(conf)
 
-    local ok, err = doAuthentication(conf)
-
-    if err ~= nil then
-        return kong.response.exist(err.status, {
-            message = err.message
-        })
-    end
+    -- if err ~= nil then
+    --     return kong.response.exist(err.status, {
+    --         message = err.message
+    --     })
+    -- end
 end
 
 
-local doAuthentication(conf)
+function doAuthentication(conf)
 
     local userToken = kong.request.get_header("User-Token")
 
