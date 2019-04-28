@@ -9,7 +9,7 @@ description = {
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git://github.com/thanhdongnguyen/kong-auth-key-jwt-sever",
-  tag = "0.1.0-1"
+  tag = "0.1.0"
 }
 
 dependencies = {
