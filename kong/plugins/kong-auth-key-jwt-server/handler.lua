@@ -1,7 +1,7 @@
 local BasePlugin = require "kong.plugins.base_plugin"
 
-local cjson = require "cjson"
 local http = require "httpclient"
+local json = require "cjson"
 local hc = http.new()
 
 local JWT = BasePlugin:extend()
@@ -10,92 +10,12 @@ local ipairs = ipairs
 local pairs = pairs
 local string = string
 
-JWT.VERSION = "0.1.0-1"
-JWT.PRIORITY = 1005
+JWT.VERSION = "0.1.0-2"
+JWT.PRIORITY = 999
 
 function JWT:new()
     JWT.super.new(self, "kong-auth-key-jwt-server")
 end
-
-function JWT:access(conf)
-
-    JWT.super.access(self)
-
-    -- if not conf.header_select_token or not conf.url_authentication or not conf.body or not conf.response_token or not conf.response_status or not conf.key_secret_signature or not conf.method_authentication then
-    --     return kong.response.exit(403, {
-    --         message = "Access Denied"
-    --     })
-    -- end
-
-    -- local ok, err = doAuthentication(conf)
-
-    -- if err ~= nil then
-    --     return kong.response.exist(err.status, {
-    --         message = err.message
-    --     })
-    -- end
-end
-
-
-function doAuthentication(conf)
-
-    local userToken = kong.request.get_header("User-Token")
-
-    if not userToken then
-        return {}, {
-            status = 403,
-            message = "Access Denied"
-        }
-    end
-
-
-    local body = {
-        [conf.body] = userToken
-    }
-    local signature = createSignature(conf.key_secret_signature, body)
-    body.signature = signature
-
-    local ok , err
-    if string.lower(conf.method_authentication)  == "get" then
-
-        ok, errrq = sendGet(conf.url_authentication, body)
-
-    elseif string.lower( conf.method_authentication ) == "post" then
-
-        ok, errrq = sendPost(conf.url_authentication, body)
-
-    else
-        return {}, {
-            status = 403,
-            message= "Access Denied"
-        }
-    end
-
-    if errrq ~= nil then
-        return {}, {
-            status = 403,
-            message= "Access Denied"
-        }
-    end
-
-    if not ok[conf.response_token] or not ok[conf.response_status] then
-        return {}, {
-            status = 403,
-            message= "Access Denied"
-        }
-    end
-
-    if ok[conf.response_status] ~= 200 then
-        return {}, {
-            status = 403,
-            message= "Access Denied"
-        }
-    end
-
-    kong.service.request.set_header("authorization", "Bearer " .. ok[conf.response_token])
-    return {}, nil
-end
-
 
 local function sha256(msg)
     local function band(int1, int2, int3, ...)
@@ -394,31 +314,129 @@ function sendGet(url, query)
     url = url .. param
 
     local res = hc:get(url)
+    local body = json.decode(res.body)
 
     if res.err ~= nil or res.code ~=200 then
         return {}, {status = 500, message = "Error in processing"}
     end
 
     return {
-        data = res.body
-    }, nill
+        data = body
+    }, nil
 end
 
 
 function sendPost(url, body)
 
 
-    local res = hc:post(url, "", {
-        headers = {
-            accept = "application/x-www-form-urlencoded"
-        }
-    }, body)
+    -- local res = hc:post(url, "", {
+    --     headers = {
+    --         accept = "*/*",
+    --         content_type = "application/x-www-form-urlencoded"
+    --     },
+    --     params = {baz = "qux"}
+    -- })
 
-    if res.err ~= nil or res.code ~=200 then
-        return {}, {status = 500, message = "Error in processing"}
-    end
+    local res = hc:post("http://httpbin.org/post","", {headers = {accept = "application/json", ["user-agent"] = "lua httpclient unit tests"}, params = {baz = "qux"}})
+
+
+    -- if res.err ~= nil or res.code ~=200 then
+    --     return {}, {status = 500, message = "Error in processing"}
+    -- end
 
     return {
-        data = res.body
+        data = res,
+        body = body,
+        url = url
     }, nill
 end
+
+function doAuthentication(conf)
+
+    local userToken = kong.request.get_header(conf.header_select_token)
+
+
+
+    if not userToken then
+        return {}, {
+            status = 403,
+            message = "Access Denied"
+        }
+    end
+
+
+
+    local body = {
+        [conf.body_send_token] = userToken
+    }
+
+    local signature = createSignature(conf.secret_key_signature_authentication, body)
+    body.signature = signature
+
+
+
+    local ok , err
+    if string.lower(conf.method_authentication)  == "get" then
+
+        ok, errrq = sendGet(conf.url_authentication, body)
+
+    -- elseif string.lower( conf.method_authentication ) == "post" then
+
+    --     ok, errrq = sendPost(conf.url_authentication, body)
+
+    else
+        return {}, {
+            status = 403,
+            message= "Not Support Method"
+        }
+    end
+
+
+
+
+    if errrq ~= nil then
+        return {}, {
+            status = 403,
+            message= "Access Denied"
+        }
+    end
+
+
+
+    if not ok.data[conf.param_token] then
+        return {}, {
+            status = 403,
+            message= "Access Denied"
+        }
+    end
+
+
+
+    kong.service.request.set_header("authorization", "Bearer " .. ok.data[conf.param_token])
+
+
+    return {}, nil
+end
+
+
+
+function JWT:access(conf)
+
+    JWT.super.access(self)
+
+    if not conf.header_select_token or not conf.url_authentication or not conf.method_authentication or not conf.body_send_token or not conf.param_token or not conf.secret_key_signature_authentication then
+        return kong.response.exit(403, {
+            message = "Access Denied"
+        })
+    end
+
+    local ok, err = doAuthentication(conf)
+
+    if err ~= nil then
+        return kong.response.exit(err.status, {
+            message = err.message
+        })
+    end
+end
+
+return JWT

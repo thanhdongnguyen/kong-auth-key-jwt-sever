@@ -24,22 +24,17 @@ return {
                     }
                 },
                 {
-                    body = {
+                    body_send_token = {
                         type = "string"
                     }
                 },
                 {
-                    response_token = {
+                    param_token = {
                         type = "string"
                     }
                 },
                 {
-                    response_status = {
-                        type = "string"
-                    }
-                },
-                {
-                    key_secret_signature = {
+                    secret_key_signature_authentication = {
                         type = "string"
                     }
                 }
