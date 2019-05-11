@@ -10,8 +10,8 @@ local ipairs = ipairs
 local pairs = pairs
 local string = string
 
-JWT.VERSION = "0.1.0-2"
-JWT.PRIORITY = 999
+JWT.VERSION = "0.1.0-3"
+JWT.PRIORITY = 1000
 
 function JWT:new()
     JWT.super.new(self, "kong-auth-key-jwt-server")
@@ -433,8 +433,9 @@ function JWT:access(conf)
     local ok, err = doAuthentication(conf)
 
     if err ~= nil then
-        return kong.response.exit(err.status, {
-            message = err.message
+        return kong.response.exit(200, {
+            message = err.message,
+            status = err.status
         })
     end
 end
