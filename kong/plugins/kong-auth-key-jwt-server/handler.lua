@@ -9,8 +9,9 @@ local kong = kong
 local ipairs = ipairs
 local pairs = pairs
 local string = string
+local tostring = tostring
 
-JWT.VERSION = "0.1.0-3"
+JWT.VERSION = "0.1.0-4"
 JWT.PRIORITY = 1000
 
 function JWT:new()
@@ -241,7 +242,7 @@ function parseBody(conf)
         else
             args = query
         end
-    elseif method == 'post' then
+    elseif method == "post" then
         local body, err, mimetype = kong.request.get_body()
 
         if err then
@@ -353,9 +354,7 @@ end
 
 function doAuthentication(conf)
 
-    local userToken = kong.request.get_header(conf.header_select_token)
-
-
+    local userToken = kong.request.get_header(tostring(conf.header_select_token))
 
     if not userToken then
         return {}, {
@@ -391,9 +390,6 @@ function doAuthentication(conf)
         }
     end
 
-
-
-
     if errrq ~= nil then
         return {}, {
             status = 403,
@@ -409,8 +405,6 @@ function doAuthentication(conf)
             message= "Access Denied"
         }
     end
-
-
 
     kong.service.request.set_header("authorization", "Bearer " .. ok.data[conf.param_token])
 
