@@ -2,7 +2,8 @@ local BasePlugin = require "kong.plugins.base_plugin"
 
 local http = require "httpclient"
 local json = require "cjson"
-local hc = http.new()
+local hc = http.new("httpclient.ngx_driver")
+local requests = require "requests"
 
 local JWT = BasePlugin:extend()
 local kong = kong
@@ -11,7 +12,7 @@ local pairs = pairs
 local string = string
 local tostring = tostring
 
-JWT.VERSION = "0.1.0-6"
+JWT.VERSION = "0.1.0-7"
 JWT.PRIORITY = 1000
 
 function JWT:new()
@@ -305,21 +306,25 @@ function sendGet(url, query)
     for _,v in pairs(query) do
         flag = flag + 1
 
-        if flag == count then
-            param = param .. _ .. "=" .. v
-        else
-            param = param .. _ .. "=" .. v .. "&"
+        if _ ~= nil and v ~= nil then
+            if flag == count then
+                param = param .. _ .. "=" .. v
+            else
+                param = param .. _ .. "=" .. v .. "&"
+            end
         end
+        
     end
 
     url = url .. param
 
-    local res = hc:get(url) 
+    local res = requests.get(url) 
 
 
-    kong.log("jwt-request", tostring(url), tostring(res.code), tostring(res.body))
+    kong.log("jwt-request-result", tostring(url), res.status_code, res.json(), "dongnt")
 
-    if res.err ~= nil or res.code ~=200 then
+
+    if res.err ~= nil or res.status_code ~= 200 then
         return {}, {status = 500, message = "Error in processing"}
     end
 

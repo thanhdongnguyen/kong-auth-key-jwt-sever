@@ -1,5 +1,5 @@
 package = "kong-auth-key-jwt-server"
-version = "0.1.0-5"
+version = "0.1.0-7"
 description = {
     summary = "this package will send request to jwt server get token and authen",
     homepage = "http://getkong.org",
@@ -12,8 +12,9 @@ source = {
 }
 
 dependencies = {
-	"httpclient 0.1.0-8",
-	"lua-cjson 2.1.0.6-1"
+	"lua-requests 1.2-0",
+	"cjson",
+	"httpclient"
 }
 build = {
     type = "builtin",
