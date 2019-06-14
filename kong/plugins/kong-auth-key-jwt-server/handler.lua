@@ -11,7 +11,7 @@ local pairs = pairs
 local string = string
 local tostring = tostring
 
-JWT.VERSION = "0.1.0-5"
+JWT.VERSION = "0.1.0-6"
 JWT.PRIORITY = 1000
 
 function JWT:new()
