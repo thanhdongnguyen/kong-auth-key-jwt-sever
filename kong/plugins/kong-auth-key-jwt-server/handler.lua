@@ -12,7 +12,7 @@ local pairs = pairs
 local string = string
 local tostring = tostring
 
-JWT.VERSION = "0.1.0-7"
+JWT.VERSION = "0.1.0-8"
 JWT.PRIORITY = 1000
 
 function JWT:new()
@@ -321,14 +321,17 @@ function sendGet(url, query)
     local res = requests.get(url) 
 
 
-    kong.log("jwt-request-result", tostring(url), res.status_code, res.json(), "dongnt")
+    kong.log("jwt-request-status", tostring(url), res.status_code)
 
 
     if res.err ~= nil or res.status_code ~= 200 then
         return {}, {status = 500, message = "Error in processing"}
     end
 
-    local body = json.decode(tostring(res.body))
+
+    kong.log("jwt-request-response", tostring(url), res.json().data)
+
+    local body = res.json().data
 
     return {
         data = body

@@ -1,5 +1,5 @@
 package = "kong-auth-key-jwt-server"
-version = "0.1.0-7"
+version = "0.1.0-8"
 description = {
     summary = "this package will send request to jwt server get token and authen",
     homepage = "http://getkong.org",
