@@ -12,8 +12,6 @@ local pairs = pairs
 local string = string
 local tostring = tostring
 
-JWT.VERSION = "0.1.0-9"
-JWT.PRIORITY = 1000
 
 function JWT:new()
     JWT.super.new(self, "kong-auth-key-jwt-server")
