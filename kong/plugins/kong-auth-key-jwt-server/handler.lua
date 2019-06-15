@@ -371,8 +371,8 @@ function doAuthentication(conf)
 
     if not userToken then
         return {}, {
-            status = 403,
-            message = "Access Denied"
+            status = 401,
+            message = "401 Unauthorized"
         }
     end
 
@@ -398,15 +398,15 @@ function doAuthentication(conf)
 
     else
         return {}, {
-            status = 403,
-            message= "Not Support Method"
+            status = 401,
+            message= "401 Unauthorized"
         }
     end
 
     if errrq ~= nil then
         return {}, {
-            status = 403,
-            message= "Access Denied"
+            status = 401,
+            message= "401 Unauthorized"
         }
     end
 
@@ -414,13 +414,12 @@ function doAuthentication(conf)
 
     if not ok.data[conf.param_token] then
         return {}, {
-            status = 403,
-            message= "Access Denied"
+            status = 401,
+            message= "401 Unauthorized"
         }
     end
 
     kong.service.request.set_header("authorization", "Bearer " .. ok.data[conf.param_token])
-
 
     return {}, nil
 end
@@ -432,15 +431,16 @@ function JWT:access(conf)
     JWT.super.access(self)
 
     if not conf.header_select_token or not conf.url_authentication or not conf.method_authentication or not conf.body_send_token or not conf.param_token or not conf.secret_key_signature_authentication then
-        return kong.response.exit(403, {
-            message = "Access Denied"
+        return kong.response.exit(401, {
+            message = "401 Unauthorized",
+            status = 401
         })
     end
 
     local ok, err = doAuthentication(conf)
 
     if err ~= nil then
-        return kong.response.exit(200, {
+        return kong.response.exit(err.status, {
             message = err.message,
             status = err.status
         })
