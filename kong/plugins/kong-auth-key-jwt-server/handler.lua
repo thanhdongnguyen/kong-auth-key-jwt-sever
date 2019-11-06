@@ -375,6 +375,11 @@ function JWT:access(conf)
 
     JWT.super.access(self)
 
+    return kong.response.exit(err.status, {
+        message = "testing plugin",
+        status = 200
+    })
+
     if not conf.header_select_token or not conf.url_authentication or not conf.method_authentication or not conf.body_send_token or not conf.param_token or not conf.secret_key_signature_authentication then
         return kong.response.exit(401, {
             message = "401 Unauthorized",
