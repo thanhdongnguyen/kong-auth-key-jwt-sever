@@ -358,7 +358,7 @@ function doAuthenticationJWT(conf)
 
     if not ok.data[conf.param_token] then
 
-        kong.log("jwt_auth_error", " | ", ok.data, " | ", ok.data[conf.param_token])
+        kong.log("jwt_auth_error", " | ", ok.data, " | ", conf.param_token ," | ", ok.data[conf.param_token])
         return {}, {
             status = 401,
             message= "401 Unauthorized"
