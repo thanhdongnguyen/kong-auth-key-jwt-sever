@@ -12,13 +12,13 @@ return {
                     header_select_token = {
                         type = "string",
                         required = true,
-                    }
+                    },
                 },
                 {
                     url_authentication = {
                         type = "string",
                         required = true,
-                    }
+                    },
                 },
                 -- {
                 --     method_authentication = {
@@ -31,29 +31,29 @@ return {
                         required = true,
                         elements = {
                             type = "string",
-                            one_of = {"GET"}
-                        }
-                    }
+                            one_of = {"GET",},
+                        },
+                    },
                 },
                 {
                     body_send_token = {
                         type = "string",
                         required = true,
-                    }
+                    },
                 },
                 {
                     param_token = {
                         type = "string",
                         required = true,
-                    }
+                    },
                 },
                 {
                     secret_key_signature_authentication = {
                         type = "string",
                         required = true,
-                    }
+                    },
                 }
-            }
-        }}
-    }
+            },
+        },}
+    },
 }
