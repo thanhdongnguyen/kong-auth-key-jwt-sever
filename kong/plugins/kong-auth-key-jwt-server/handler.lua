@@ -12,14 +12,14 @@ local pairs = pairs
 local string = string
 local tostring = tostring
 
-JWT.VERSION = "0.1.0-9"
-JWT.PRIORITY = 1000
+JWT.VERSION = "0.1.0-10"
+JWT.PRIORITY = 998
 
 function JWT:new()
     JWT.super.new(self, "kong-auth-key-jwt-server")
 end
 
-local function sha256(msg)
+local function sha256JWT(msg)
     local function band(int1, int2, int3, ...)
             int1 = int1 % 2^32
             int2 = int2 % 2^32
@@ -216,59 +216,11 @@ local function sha256(msg)
             num2s(H[5], 4) .. num2s(H[6], 4) .. num2s(H[7], 4) .. num2s(H[8], 4))
 end
 
-function isExist(listMethod, method)
 
-    for _, v in ipairs(listMethod) do
-        if string.lower(v) == string.lower(method) then
-            return true
-        end
-    end
-    return false
-end
-
-
-function parseBody(conf)
-
-    local method = string.lower(kong.request.get_method())
-    local args = {}
-
-
-
-    if method == "get" then
-        local query, err = kong.request.get_query()
-
-
-        if err then
-            return {}, {status = 500, message = "not found params"}
-        else
-            args = query
-        end
-    elseif method == "post" then
-        local body, err, mimetype = kong.request.get_body()
-
-        if err then
-            return {}, {status = 500, message = "not found params"}
-        else
-
-            if mimetype == "application/x-www-form-urlencoded" then
-                args = body
-            elseif mimetype == "application/json" then
-                args = json.decode(kong.request.get_raw_body())
-            elseif mimetype == "multipart/form-data" then
-                args = multipart(kong.request.get_raw_body(), kong.request.get_header("Content-Type")):get_all()
-            else
-                return {}, {status = 500, message = "not found params"}
-            end
-        end
-    end
-    return args, nil
-end
-
-function sortKey( args )
+function sortKeyJWT( args )
     local index = {}
     local result = {}
 
-    -- for i in pairs(args) do table.insert( index, i ) end
     for _,v in ipairs(args) do
         table.insert(index, _)
     end
@@ -281,19 +233,18 @@ function sortKey( args )
     return result
 end
 
-function createSignature(key, args)
+function createSignatureJWT(key, args)
 
     local queryString = ""
-    local sargs = sortKey(args)
+    local sargs = sortKeyJWT(args)
     for _, v in ipairs(sargs) do
         queryString = queryString .. v
     end
 
-    return sha256(queryString..key)
+    return sha256JWT(queryString..key)
 end
 
-function sendGet(url, query)
-
+function sendGetJWT(url, query)
 
     local count = 0
 
@@ -313,15 +264,15 @@ function sendGet(url, query)
                 param = param .. _ .. "=" .. v .. "&"
             end
         end
-        
+
     end
 
     url = url .. param
 
-    local res = requests.get(url) 
+    local res = requests.get(url)
 
 
-    kong.log("jwt-request-status", tostring(url), res.status_code)
+    kong.log("jwt_request_status", tostring(url), res.status_code)
 
 
     if res.err ~= nil or res.status_code ~= 200 then
@@ -330,9 +281,8 @@ function sendGet(url, query)
 
     local body, error = res.json()
 
-    kong.log("jwt-request-response", tostring(url), body, error)
+    kong.log("jwt_request_response", tostring(url), body, error)
 
-    
 
     return {
         data = body
@@ -340,7 +290,7 @@ function sendGet(url, query)
 end
 
 
-function sendPost(url, body)
+function sendPostJWT(url, body)
 
 
     -- local res = hc:post(url, "", {
@@ -365,36 +315,38 @@ function sendPost(url, body)
     }, nill
 end
 
-function doAuthentication(conf)
+function doAuthenticationJWT(conf)
 
     local userToken = kong.request.get_header(tostring(conf.header_select_token))
 
     if not userToken then
+
+        kong.log("jwt_not_user_token", userToken)
         return {}, {
             status = 401,
             message = "401 Unauthorized"
         }
     end
 
-
-
     local body = {
         [conf.body_send_token] = userToken
     }
 
-    local signature = createSignature(conf.secret_key_signature_authentication, body)
+    local signature = createSignatureJWT(conf.secret_key_signature_authentication, body)
     body.signature = signature
 
-
-
-    local ok , err
+    local ok , errrq
     if string.lower(conf.method_authentication)  == "get" then
 
-        ok, errrq = sendGet(conf.url_authentication, body)
+        ok, errrq = sendGetJWT(conf.url_authentication, body)
 
-    -- elseif string.lower( conf.method_authentication ) == "post" then
-
-    --     ok, errrq = sendPost(conf.url_authentication, body)
+        if errrq ~= nil then
+            kong.log("jwt_send_request_error", errrq)
+            return {}, {
+                status = 401,
+                message= "401 Unauthorized"
+            }
+        end
 
     else
         return {}, {
@@ -403,16 +355,9 @@ function doAuthentication(conf)
         }
     end
 
-    if errrq ~= nil then
-        return {}, {
-            status = 401,
-            message= "401 Unauthorized"
-        }
-    end
-
-
-
     if not ok.data[conf.param_token] then
+
+        kong.log("jwt_auth_error", ok.data[conf.param_token])
         return {}, {
             status = 401,
             message= "401 Unauthorized"
@@ -437,7 +382,7 @@ function JWT:access(conf)
         })
     end
 
-    local ok, err = doAuthentication(conf)
+    local ok, err = doAuthenticationJWT(conf)
 
     if err ~= nil then
         return kong.response.exit(err.status, {
