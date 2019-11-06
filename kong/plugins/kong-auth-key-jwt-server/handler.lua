@@ -361,6 +361,7 @@ function doAuthenticationJWT(conf)
 
     kong.service.request.set_header("authorization", "Bearer " .. ok[conf.param_token])
 
+    kong.log("jwt_success", " | ", userToken)
     return {}, nil
 end
 
@@ -389,6 +390,8 @@ function JWT:access(conf)
             status = err.status
         })
     end
+
+
 end
 
 return JWT
