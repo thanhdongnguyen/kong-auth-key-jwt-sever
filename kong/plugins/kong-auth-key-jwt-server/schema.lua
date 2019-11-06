@@ -27,12 +27,8 @@ return {
                 -- },
                 {
                     method_authentication = {
-                        type = "array",
+                        type = "string",
                         required = true,
-                        elements = {
-                            type = "string",
-                            one_of = {"GET",},
-                        },
                         default = {"GET",},
                     },
                 },
