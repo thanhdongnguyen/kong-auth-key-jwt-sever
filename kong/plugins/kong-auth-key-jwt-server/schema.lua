@@ -29,7 +29,6 @@ return {
                     method_authentication = {
                         type = "string",
                         required = true,
-                        default = {"GET",},
                     },
                 },
                 {
