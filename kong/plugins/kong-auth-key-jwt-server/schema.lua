@@ -10,32 +10,47 @@ return {
             fields = {
                 {
                     header_select_token = {
-                        type = "string"
+                        type = "string",
+                        required = true,
                     }
                 },
                 {
                     url_authentication = {
-                        type = "string"
+                        type = "string",
+                        required = true,
                     }
                 },
+                -- {
+                --     method_authentication = {
+                --         type = "string"
+                --     }
+                -- },
                 {
                     method_authentication = {
-                        type = "string"
+                        type = "array",
+                        required = true,
+                        elements = {
+                            type = "string",
+                            one_of = {"GET"}
+                        }
                     }
                 },
                 {
                     body_send_token = {
-                        type = "string"
+                        type = "string",
+                        required = true,
                     }
                 },
                 {
                     param_token = {
-                        type = "string"
+                        type = "string",
+                        required = true,
                     }
                 },
                 {
                     secret_key_signature_authentication = {
-                        type = "string"
+                        type = "string",
+                        required = true,
                     }
                 }
             }
