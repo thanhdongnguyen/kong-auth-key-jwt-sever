@@ -349,6 +349,7 @@ function doAuthenticationJWT(conf)
         end
 
     else
+        kong.log("jwt_auth_error", " | not select method GET")
         return {}, {
             status = 401,
             message= "401 Unauthorized"
@@ -378,6 +379,8 @@ function JWT:access(conf)
 
 
     if not conf.header_select_token or not conf.url_authentication or not conf.method_authentication or not conf.body_send_token or not conf.param_token or not conf.secret_key_signature_authentication then
+
+        kong.log("jwt_auth_error", " | not enough params")
         return kong.response.exit(401, {
             message = "401 Unauthorized",
             status = 401
