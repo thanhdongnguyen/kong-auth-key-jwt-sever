@@ -272,16 +272,13 @@ function sendGetJWT(url, query)
     local res = requests.get(url)
 
 
-    kong.log("jwt_request_status", tostring(url), res.status_code)
-
-
     if res.err ~= nil or res.status_code ~= 200 then
         return {}, {status = 500, message = "Error in processing"}
     end
 
     local body, error = res.json()
 
-    kong.log("jwt_request_response", tostring(url), body, error)
+    kong.log("jwt_request_response", " | ", tostring(url), " | ", json.encode(body), " | ", error)
 
 
     return {
@@ -356,16 +353,16 @@ function doAuthenticationJWT(conf)
         }
     end
 
-    if not ok[conf.param_token] then
+    if not ok.data[conf.param_token] then
 
-        kong.log("jwt_auth_error", " | ", ok, " | ", conf.param_token ," | ", ok[conf.param_token])
+        kong.log("jwt_auth_error", " | ", ok, " | ", conf.param_token ," | ", ok.data[conf.param_token])
         return {}, {
             status = 401,
             message= "401 Unauthorized"
         }
     end
 
-    kong.service.request.set_header("authorization", "Bearer " .. ok[conf.param_token])
+    kong.service.request.set_header("authorization", "Bearer " .. ok.data[conf.param_token])
 
     return {}, nil
 end
