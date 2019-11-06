@@ -33,6 +33,7 @@ return {
                             type = "string",
                             one_of = {"GET",},
                         },
+                        default = {"GET",},
                     },
                 },
                 {
